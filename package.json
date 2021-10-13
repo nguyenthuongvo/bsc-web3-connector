@@ -1,9 +1,9 @@
 {
-  "name": "@binance-chain/bsc-connector",
+  "name": "@voxnguyen/krc-connector",
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.3",
+  "version": "1.0.0",
   "description": "A simple, maximally extensible, dependency minimized framework for building modern Bsc dApps",
   "keywords": [
     "react",
