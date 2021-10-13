@@ -12,7 +12,7 @@ export class NoBscProviderError extends Error {
   public constructor() {
     super();
     this.name = this.constructor.name;
-    this.message = "No BSC provider was found on window.BinanceChain.";
+    this.message = "No KRC provider was found on window.kardiachain.";
   }
 }
 
@@ -38,7 +38,7 @@ export class BscConnector extends AbstractConnector {
     if (__DEV__) {
       console.log("Handling 'chainChanged' event with payload", chainId);
     }
-    this.emitUpdate({ chainId, provider: window.BinanceChain });
+    this.emitUpdate({ chainId, provider: window.kardiachain });
   }
 
   private handleAccountsChanged(accounts: string[]): void {
@@ -63,29 +63,29 @@ export class BscConnector extends AbstractConnector {
     if (__DEV__) {
       console.log("Handling 'networkChanged' event with payload", networkId);
     }
-    this.emitUpdate({ chainId: networkId, provider: window.BinanceChain });
+    this.emitUpdate({ chainId: networkId, provider: window.kardiachain });
   }
 
   public async activate(): Promise<ConnectorUpdate> {
-    if (!window.BinanceChain) {
+    if (!window.kardiachain) {
       throw new NoBscProviderError();
     }
 
-    if (window.BinanceChain.on) {
-      window.BinanceChain.on("chainChanged", this.handleChainChanged);
-      window.BinanceChain.on("accountsChanged", this.handleAccountsChanged);
-      window.BinanceChain.on("close", this.handleClose);
-      window.BinanceChain.on("networkChanged", this.handleNetworkChanged);
+    if (window.kardiachain.on) {
+      window.kardiachain.on("chainChanged", this.handleChainChanged);
+      window.kardiachain.on("accountsChanged", this.handleAccountsChanged);
+      window.kardiachain.on("close", this.handleClose);
+      window.kardiachain.on("networkChanged", this.handleNetworkChanged);
     }
 
-    if ((window.BinanceChain as any).isMetaMask) {
-      (window.BinanceChain as any).autoRefreshOnNetworkChange = false;
+    if ((window.kardiachain as any).isMetaMask) {
+      (window.kardiachain as any).autoRefreshOnNetworkChange = false;
     }
 
     // try to activate + get account via eth_requestAccounts
     let account;
     try {
-      account = await (window.BinanceChain.send as Send)(
+      account = await (window.kardiachain.send as Send)(
         "eth_requestAccounts"
       ).then((sendReturn) => parseSendReturn(sendReturn)[0]);
     } catch (error) {
@@ -101,26 +101,26 @@ export class BscConnector extends AbstractConnector {
     // if unsuccessful, try enable
     if (!account) {
       // if enable is successful but doesn't return accounts, fall back to getAccount (not happy i have to do this...)
-      account = await window.BinanceChain.enable().then(
+      account = await window.kardiachain.enable().then(
         (sendReturn) => sendReturn && parseSendReturn(sendReturn)[0]
       );
     }
 
-    return { provider: window.BinanceChain, ...(account ? { account } : {}) };
+    return { provider: window.kardiachain, ...(account ? { account } : {}) };
   }
 
   public async getProvider(): Promise<any> {
-    return window.BinanceChain;
+    return window.kardiachain;
   }
 
   public async getChainId(): Promise<number | string> {
-    if (!window.BinanceChain) {
+    if (!window.kardiachain) {
       throw new NoBscProviderError();
     }
 
     let chainId;
     try {
-      chainId = await (window.BinanceChain.send as Send)("eth_chainId").then(
+      chainId = await (window.kardiachain.send as Send)("eth_chainId").then(
         parseSendReturn
       );
     } catch {
@@ -132,7 +132,7 @@ export class BscConnector extends AbstractConnector {
 
     if (!chainId) {
       try {
-        chainId = await (window.BinanceChain.send as Send)("net_version").then(
+        chainId = await (window.kardiachain.send as Send)("net_version").then(
           parseSendReturn
         );
       } catch {
@@ -146,7 +146,7 @@ export class BscConnector extends AbstractConnector {
     if (!chainId) {
       try {
         chainId = parseSendReturn(
-          (window.BinanceChain.send as SendOld)({ method: "net_version" })
+          (window.kardiachain.send as SendOld)({ method: "net_version" })
         );
       } catch {
         warning(
@@ -157,16 +157,16 @@ export class BscConnector extends AbstractConnector {
     }
 
     if (!chainId) {
-      if ((window.BinanceChain as any).isDapper) {
+      if ((window.kardiachain as any).isDapper) {
         chainId = parseSendReturn(
-          (window.BinanceChain as any).cachedResults.net_version
+          (window.kardiachain as any).cachedResults.net_version
         );
       } else {
         chainId =
-          (window.BinanceChain as any).chainId ||
-          (window.BinanceChain as any).netVersion ||
-          (window.BinanceChain as any).networkVersion ||
-          (window.BinanceChain as any)._chainId;
+          (window.kardiachain as any).chainId ||
+          (window.kardiachain as any).netVersion ||
+          (window.kardiachain as any).networkVersion ||
+          (window.kardiachain as any)._chainId;
       }
     }
 
@@ -174,13 +174,13 @@ export class BscConnector extends AbstractConnector {
   }
 
   public async getAccount(): Promise<null | string> {
-    if (!window.BinanceChain) {
+    if (!window.kardiachain) {
       throw new NoBscProviderError();
     }
 
     let account;
     try {
-      account = await (window.BinanceChain.send as Send)("eth_accounts").then(
+      account = await (window.kardiachain.send as Send)("eth_accounts").then(
         (sendReturn) => parseSendReturn(sendReturn)[0]
       );
     } catch {
@@ -189,7 +189,7 @@ export class BscConnector extends AbstractConnector {
 
     if (!account) {
       try {
-        account = await window.BinanceChain.enable().then(
+        account = await window.kardiachain.enable().then(
           (sendReturn) => parseSendReturn(sendReturn)[0]
         );
       } catch {
@@ -202,7 +202,7 @@ export class BscConnector extends AbstractConnector {
 
     if (!account) {
       account = parseSendReturn(
-        (window.BinanceChain.send as SendOld)({ method: "eth_accounts" })
+        (window.kardiachain.send as SendOld)({ method: "eth_accounts" })
       )[0];
     }
 
@@ -210,17 +210,17 @@ export class BscConnector extends AbstractConnector {
   }
 
   public deactivate() {
-    if (window.BinanceChain && window.BinanceChain.removeListener) {
-      window.BinanceChain.removeListener(
+    if (window.kardiachain && window.kardiachain.removeListener) {
+      window.kardiachain.removeListener(
         "chainChanged",
         this.handleChainChanged
       );
-      window.BinanceChain.removeListener(
+      window.kardiachain.removeListener(
         "accountsChanged",
         this.handleAccountsChanged
       );
-      window.BinanceChain.removeListener("close", this.handleClose);
-      window.BinanceChain.removeListener(
+      window.kardiachain.removeListener("close", this.handleClose);
+      window.kardiachain.removeListener(
         "networkChanged",
         this.handleNetworkChanged
       );
@@ -228,12 +228,12 @@ export class BscConnector extends AbstractConnector {
   }
 
   public async isAuthorized(): Promise<boolean> {
-    if (!window.BinanceChain) {
+    if (!window.kardiachain) {
       return false;
     }
 
     try {
-      return await (window.BinanceChain.send as Send)("eth_accounts").then(
+      return await (window.kardiachain.send as Send)("eth_accounts").then(
         (sendReturn) => {
           if (parseSendReturn(sendReturn).length > 0) {
             return true;
